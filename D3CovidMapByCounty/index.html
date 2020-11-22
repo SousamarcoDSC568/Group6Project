@@ -29,13 +29,13 @@
         }
         #container
         {
-            width: 80vw;
+            width: 80px;
             height: 80vh;
         }
         #canvas
         {
-            width: 80vw;
-            height: 80vh;
+            width: 1000px;
+            height: 800px;
             background-color: azure;
         }
         path.path_geo{
@@ -47,22 +47,38 @@
 
 
 <body>
+
 <div id="caption">
     US COVID-19 Cases by County.
 </div>
-
-<div id="container">
-    <svg id="canvas" viewBox="0 0 1000 800">
-    </svg>
-</div>
 <div id="tooltip"></div>
+
+
+
+<table width="60vw" border=".01px" >
+
+    <tr>
+        <th rowspan="2"><svg id="canvas" viewBox="0 0 1000 800"></svg></th>
+        <td><svg width="500px" height="400px" viewBox="0 0 1000 800" id="topRight"></svg></td>
+    </tr>
+    <tr>
+        <td><svg width="500px" height="400px" viewBox="0 0 1000 800" id="bottomLeft"></svg></td>
+    </tr>
+</table>
+
+
 
 <script>
     //The foundation of this code was supplied from professor Amir. Adapted it accordingly.
 
 
     // select the svg element
-    let svg = d3.select('svg');
+    let svg = d3.select('#canvas');
+
+    let svg2 = d3.select('#right');
+    svg2.append();
+
+
     // load the data sources:
     // Source 1: NY times COVID-19 Data (live)
     let covid19="https://raw.githubusercontent.com/nytimes/covid-19-data/master/live/us-counties.csv";
