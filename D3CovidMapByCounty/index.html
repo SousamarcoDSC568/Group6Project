@@ -19,7 +19,8 @@
             background-color: #b8d2f6;
             position: absolute;
             width: 150px;
-            height: 60px;
+            height: 65px;
+            outline-style: solid;
         }
         #caption{
             margin: auto;
@@ -44,9 +45,11 @@
             stroke-width: .5px;
             stroke: black;
         }
+        .axis{
+            font-size: 20px;
+        }
     </style>
 </head>
-
 
 <body>
 
@@ -56,7 +59,7 @@
 <div id="tooltip"></div>
 
 
-
+<!--Table encoding where/how our svg elements are stored in a multiview -->
 <table width="60vw" border=".01px" >
 
     <tr>
@@ -67,8 +70,6 @@
         <td><svg width="500px" height="400px" viewBox="0 0 1000 800" id="bottomRight"></svg></td>
     </tr>
 </table>
-
-
 
 <script>
 
@@ -81,6 +82,7 @@
     // Source 1: NY times COVID-19 Data (live) then COVID-19 full
     let covid19="https://raw.githubusercontent.com/nytimes/covid-19-data/master/live/us-counties.csv";
     let covid192 = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv"
+    let moonData = "https://raw.githubusercontent.com/SousamarcoDSC568/Group6Project/main/D3CovidMapByCounty/data/moonData.csv"
 
     // source 2: US Census Counties geojson
     let geojson = "data/us_counties_topo.json";
@@ -90,8 +92,9 @@
         [
             d3.json(geojson),
             d3.csv(covid19),
-            d3.csv(covid192)],d3.autoType()).then(main)
-
+            d3.csv(covid192),
+            d3.csv(moonData)
+        ],d3.autoType()).then(main)
 
     function main(data){
 
@@ -104,13 +107,73 @@
             return +d.cases
         })
 
-        //input of full data
-        console.log(data[2])
-        //full covid data grouped
-        let covid_data_full = d3.group(data[2],function(d){return d.fips;});
-        console.log(covid_data_full)
+        let covid_data_full = d3.group(data[2],function(d){return d.fips;}); //full data grouped by fips
+
+        //The following function was heavily assisted by Prof. Amir. Generates line chart with mouseover.
+        //function input is data and svg id (defaulted)
+        function Make_line_chart(line_data,genData,svg_element_name="bottomRight")
+        {
+            //getting the data within the function; to be used on mousehover
+            let data_for_the_hovored_county = covid_data_full.get(line_data);
+
+            // x and y for the line chart for number of the cases (cumulative)
+            //maps time and cases are both extracted,(date is parsed)
+            let x_y  = d3.map(data_for_the_hovored_county,function (d) {
+                return {"x" : d3.timeParse("%Y-%m-%d")(d.date), // cast to date format
+                    "y": + d.cases // cast to numeric
+                }
+            });
+
+            //scales apply with a function returning "x" and "y" from data d
+            // xscale and yscale
+            let xscale = d3.scaleTime().domain(d3.extent(x_y,function (d) {
+                return d.x
+            }))
+                .range([0, 900])
+            let yscale = d3.scaleLinear().domain(d3.extent(x_y,function (d) {
+                return d.y
+            }))
+                .range([700,0])
+
+            // line generator
+            let line_generator = d3.line()
+                .x(function (d) {
+                    return xscale(d.x)})
+                .y(function (d) { return yscale(d.y)})
+
+            //Linefigure class
+            d3.select('.Linefigure').remove();
+            let lineChart_svg = d3.select(`#${svg_element_name}`)
+                .append("g")
+                .attr("class","Linefigure")
+                .attr("transform","translate(50 50)")
+
+            //[x_y], being the dates and cases are data, and appending the line generator
+            lineChart_svg.selectAll('g')
+                .data([x_y])
+                .enter()
+                .append("path")
+                .attr("d",line_generator)
+                .attr("stroke","black")
+                .attr("stroke-width","2.5px")
+                .attr("fill","none")
+
+            //adding axis to the figure
+            lineChart_svg.append("g").attr("class","axis")
+                .call(d3.axisLeft(yscale));
+            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(0,700)")
+                .call(d3.axisBottom(xscale));
 
 
+            //Adding a title; may want to convert to css styling
+            lineChart_svg.append("text")
+                .attr("x", 450)
+                .attr("text-anchor", "middle")
+                .style("font-size", "35px")
+                .text(covid_data.get(genData.properties.GEOID)[0].county);
+        }
+
+        //primary covid map canvas
         cases_extent[0]=1
         let colorScale = d3.scaleLog()
             .domain(cases_extent)
@@ -137,7 +200,8 @@
                         "<div class='tooltipData' style='color:red'>Deaths: "+covid_data.get(d.properties.GEOID)[0].deaths.toString()+"</div>" +
                         "<div class='tooltipData'></div>")
 
-                //console.log(covid_data.get(d.properties.GEOID))
+                //inputting the GEOID data into the linechart function, as well as the data generally for titling
+                Make_line_chart(d.properties.GEOID,d)
 
             })
             .transition()
@@ -163,43 +227,6 @@
         }
 
 
-        //considering a list of objects of a single county with id 17031
-        let oneCounty = covid_data_full.get("17031");
-        console.log(oneCounty)
-
-        //Extracting the dates
-        let datesOneCounty = d3.map(oneCounty,function (d){
-            return d["date"]});
-        console.log(datesOneCounty)
-
-        //Extracting the cases
-        let casesOneCounty = d3.map(oneCounty,function (d){
-            return d["cases"]});
-        console.log(casesOneCounty)
-
-        //attempting to display a single county. This is the defining of axis
-        var x = d3.scaleTime()
-            .domain(d3.extent(datesOneCounty))
-            .range([ 0, 1000 ]);
-        svg2.append("g")
-            .attr("transform", "translate(0," + 790 + ")")
-            .call(d3.axisBottom(x));
-
-        var y = d3.scaleLinear()
-            .domain([0, d3.max(casesOneCounty)])
-            .range([ 0, 1000 ]);
-        svg2.append("g")
-            .call(d3.axisLeft(y));
-
-        svg2.append("path")
-            .datum(oneCounty)
-            .attr("fill", "none")
-            .attr("stroke", "steelblue")
-            .attr("stroke-width", 1.5)
-            .attr("d", d3.line()
-                .x(function(d) { return d["date"] })
-                .y(function(d) { return d["cases"] })
-            )
 
     }
 
