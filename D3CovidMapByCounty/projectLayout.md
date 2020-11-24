@@ -1,5 +1,3 @@
-This is where we can work on The map by County. If we prefer by state then we can create as such.
-
 TO DO:
 
 1. Create map of Covid cases or deaths (DONE:Marco)
