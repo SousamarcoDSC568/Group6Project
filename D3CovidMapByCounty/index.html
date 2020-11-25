@@ -130,10 +130,6 @@
                 }
             });
 
-            //Acquires the first date associated with a county...inneficient but egh
-            //firstDate = d3.map(x_y, function(d){return d.x})[0]
-            //Need to filter out dates in fullMoonData that are earlier than this
-
             //scales apply with a function returning "x" and "y" from data d
             // xscale and yscale
             let xscale = d3.scaleTime().domain(d3.extent(x_y,function (d) {
@@ -151,9 +147,14 @@
                     return xscale(d.x)})
                 .y(function (d) { return yscale(d.y)})
 
+
+            //Acquires the first date associated with a county...inneficient but egh
+            let firstDate = d3.map(x_y, function(d){return d.x})[2]
+
             //removing red line svg elements
             svg2.selectAll(".rects").remove()
 
+            //Need to fix my filter function to actually filter out those less dates. Idk why it isn't.
             //adding red line svg elements
             svg2.append('g')
                 .attr("transform","translate(25,0)")
@@ -162,9 +163,10 @@
                 .data(fullMoonDates)
                 .enter()
                 .append('rect')
+                .filter(function(d){ return (d > firstDate)})
                 .attr("fill",function(d){ return "red"})
                 .attr('x',function(d){return xscale(d)})
-                .attr('y',0).attr('height',800).attr('width',2)
+                .attr('y',0).attr('height',750).attr('width',2)
 
             //Linefigure
             d3.select('.Linefigure').remove();
@@ -198,7 +200,6 @@
                 .text(`${data_for_the_hovored_county[0]["county"]} County Cases`);
 
         }
-
 
         //primary covid map canvas
         cases_extent[0]=1
