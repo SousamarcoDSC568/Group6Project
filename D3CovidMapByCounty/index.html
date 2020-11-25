@@ -101,7 +101,6 @@
         ],d3.autoType()).then(main)
 
     function main(data){
-
         let geoJson = topojson.feature(data[0],data[0].objects.cb_2018_us_county_20m).features;
         let geo_generator = d3.geoPath().projection(projection);
 
@@ -111,16 +110,15 @@
             return +d.cases
         })
         let covid_data_full = d3.group(data[2],function(d){return d.fips;}); //full data grouped by fips
-
         let covid_data_full3 = d3.group(data[3],function(d){return d.fips;}); //full data grouped by fips
-        console.log(covid_data_full3)
 
+        
         //The following function was heavily assisted by Prof. Amir. Generates line chart with mouseover.
         //function input is data and svg id (defaulted)
         function Make_line_chart(line_data,genData,svg_element_name="bottomRight")
         {
             //getting the data within the function; to be used on mousehover
-            let data_for_the_hovored_county = covid_data_full.get(line_data);
+            let data_for_the_hovored_county = covid_data_full3.get(line_data);
             console.log(data_for_the_hovored_county)
             console.log(line_data)
 
