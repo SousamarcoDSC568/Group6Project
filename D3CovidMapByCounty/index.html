@@ -81,54 +81,58 @@
     // load the data sources:
     // Source 1: NY times COVID-19 Data (live) then COVID-19 full
     let covid19="https://raw.githubusercontent.com/nytimes/covid-19-data/master/live/us-counties.csv";
-    let covid192 = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv"
-    let moonData = "https://raw.githubusercontent.com/SousamarcoDSC568/Group6Project/main/D3CovidMapByCounty/data/moonData.csv"
-
-    //I have data that has added fields changeInCases and changeInDeaths, if you don't enjoy the cumulative data, can replace with covid192
+    //let covid192 = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv"
+    //I have data that has added fields changeInCases and changeInDeaths (NYTimes data is cumulative). Same as 192 but with 2 added cols.
+    //You could also promise it from the /data/ folder if you wish.
     let covid193 = "https://raw.githubusercontent.com/SousamarcoDSC568/Group6Project/main/D3CovidMapByCounty/data/covid19Backend.csv"
-
-    // source 2: US Census Counties geojson
+    // Source 2: Moon Data. Includes dates and times of full moons. INSTEAD, I use filteredMoon Data, which I filtered relevant full moons for you.
+    //let moonData = "https://raw.githubusercontent.com/SousamarcoDSC568/Group6Project/main/D3CovidMapByCounty/data/moonData.csv"
+    // Source 3: US Census Counties geojson
     let geojson = "data/us_counties_topo.json";
+
     let projection = d3.geoAlbersUsa()
         .scale(1300).translate([500, 400])
+
     Promise.all(
         [
             d3.json(geojson),
             d3.csv(covid19),
-            d3.csv(covid192),
             d3.csv(covid193),
-            d3.csv(moonData)
+            d3.csv("../D3CovidMapByCounty/data/filteredMoonData.csv")
         ],d3.autoType()).then(main)
 
     function main(data){
         let geoJson = topojson.feature(data[0],data[0].objects.cb_2018_us_county_20m).features;
         let geo_generator = d3.geoPath().projection(projection);
-
         let covid_data = d3.group(data[1],function(d){return d.fips;}); // groups of fips
-
         let cases_extent = d3.extent(data[1],function (d){
             return +d.cases
         })
+        //this accesses the 2nd list value in list of promised data; which right now is my backendData
         let covid_data_full = d3.group(data[2],function(d){return d.fips;}); //full data grouped by fips
-        let covid_data_full3 = d3.group(data[3],function(d){return d.fips;}); //full data grouped by fips
 
-        
-        //The following function was heavily assisted by Prof. Amir. Generates line chart with mouseover.
-        //function input is data and svg id (defaulted)
-        function Make_line_chart(line_data,genData,svg_element_name="bottomRight")
+        //parsing full moon Dates
+        let fullMoonDates  = d3.map(data[3],function (d) {
+            return d3.timeParse("%Y-%m-%d")(d.Date)});
+
+        //The following function was assisted by Prof. Amir. Generates line chart with mouseover.
+        //function input is a specific GEOID, the genral data d from mouseover, and svg id (defaulted)
+        function Make_line_chart(line_data,svg_element_name="bottomRight")
         {
             //getting the data within the function; to be used on mousehover
-            let data_for_the_hovored_county = covid_data_full3.get(line_data);
-            console.log(data_for_the_hovored_county)
-            console.log(line_data)
+            let data_for_the_hovored_county = covid_data_full.get(line_data);
 
             // x and y for the line chart for number of the cases (cumulative)
             //maps time and cases are both extracted,(date is parsed)
             let x_y  = d3.map(data_for_the_hovored_county,function (d) {
                 return {"x" : d3.timeParse("%Y-%m-%d")(d.date), // cast to date format
-                    "y": + d.cases // cast to numeric
+                    "y": + d.changeInCases // cast to numeric
                 }
             });
+
+            //Acquires the first date associated with a county...inneficient but egh
+            //firstDate = d3.map(x_y, function(d){return d.x})[0]
+            //Need to filter out dates in fullMoonData that are earlier than this
 
             //scales apply with a function returning "x" and "y" from data d
             // xscale and yscale
@@ -147,7 +151,22 @@
                     return xscale(d.x)})
                 .y(function (d) { return yscale(d.y)})
 
-            //Linefigure class
+            //removing red line svg elements
+            svg2.selectAll(".rects").remove()
+
+            //adding red line svg elements
+            svg2.append('g')
+                .attr("transform","translate(25,0)")
+                .attr("class",'rects')
+                .selectAll('.rects')
+                .data(fullMoonDates)
+                .enter()
+                .append('rect')
+                .attr("fill",function(d){ return "red"})
+                .attr('x',function(d){return xscale(d)})
+                .attr('y',0).attr('height',800).attr('width',2)
+
+            //Linefigure
             d3.select('.Linefigure').remove();
             let lineChart_svg = d3.select(`#${svg_element_name}`)
                 .append("g")
@@ -163,21 +182,24 @@
                 .attr("stroke","black")
                 .attr("stroke-width","2.5px")
                 .attr("fill","none")
+                .attr("transform","translate(25,0)")
 
             //adding axis to the figure
-            lineChart_svg.append("g").attr("class","axis")
+            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(25,0)")
                 .call(d3.axisLeft(yscale));
-            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(0,700)")
+            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(25,700)")
                 .call(d3.axisBottom(xscale));
 
-
-            //Adding a title; may want to convert to css styling
+            //Adding a title
             lineChart_svg.append("text")
                 .attr("x", 450)
                 .attr("text-anchor", "middle")
                 .style("font-size", "35px")
-                .text(covid_data.get(genData.properties.GEOID)[0].county);
+                .text(`${data_for_the_hovored_county[0]["county"]} County Cases`);
+
         }
+
+
 
         //primary covid map canvas
         cases_extent[0]=1
@@ -206,8 +228,8 @@
                         "<div class='tooltipData' style='color:red'>Deaths: "+covid_data.get(d.properties.GEOID)[0].deaths.toString()+"</div>" +
                         "<div class='tooltipData'></div>")
 
-                //inputting the GEOID data into the linechart function, as well as the data generally for titling
-                Make_line_chart(d.properties.GEOID,d)
+                //inputting the GEOID data into the linechart function
+                Make_line_chart(d.properties.GEOID)
 
             })
             .transition()
