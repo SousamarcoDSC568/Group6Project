@@ -111,6 +111,7 @@
         })
         let covid_data_full = d3.group(data[2],function(d){return d.fips;}); //full data grouped by fips
 
+
         //The following function was heavily assisted by Prof. Amir. Generates line chart with mouseover.
         //function input is data and svg id (defaulted)
         function Make_line_chart(line_data,genData,svg_element_name="bottomRight")
