@@ -147,17 +147,16 @@
                     return xscale(d.x)})
                 .y(function (d) { return yscale(d.y)})
 
-
-            //Acquires the first date associated with a county...inneficient but egh
+            //NOTE: If you wish to use this in the future, simply replace the filteredData with the full data!
+            //Acquires the first date associated with a county
             let firstDate = d3.map(x_y, function(d){return d.x})[2]
 
             //removing red line svg elements
             svg2.selectAll(".rects").remove()
 
-            //Need to fix my filter function to actually filter out those less dates. Idk why it isn't.
-            //adding red line svg elements
+            //adding red line svg elements; filters out dates past firstDate, described above
             svg2.append('g')
-                .attr("transform","translate(25,0)")
+                .attr("transform","translate(75,0)")
                 .attr("class",'rects')
                 .selectAll('.rects')
                 .data(fullMoonDates)
@@ -173,7 +172,7 @@
             let lineChart_svg = d3.select(`#${svg_element_name}`)
                 .append("g")
                 .attr("class","Linefigure")
-                .attr("transform","translate(50 50)")
+                .attr("transform","translate(75, 50)")
 
             //[x_y], being the dates and cases are data, and appending the line generator
             lineChart_svg.selectAll('g')
@@ -184,13 +183,21 @@
                 .attr("stroke","black")
                 .attr("stroke-width","2.5px")
                 .attr("fill","none")
-                .attr("transform","translate(25,0)")
 
             //adding axis to the figure
-            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(25,0)")
+            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(0,0)")
                 .call(d3.axisLeft(yscale));
-            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(25,700)")
+            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(0,700)")
                 .call(d3.axisBottom(xscale));
+
+            //Adding a svg behind title so that the red lines do not cross the title
+            let titleRectangle = lineChart_svg.append("rect")
+                .attr("x",300)
+                .attr("y",0)
+                .attr("width", 460)
+                .attr("height", 65)
+                .attr("fill","white")
+                .attr("transform","translate(-50,-50)")
 
             //Adding a title
             lineChart_svg.append("text")
@@ -198,7 +205,6 @@
                 .attr("text-anchor", "middle")
                 .style("font-size", "35px")
                 .text(`${data_for_the_hovored_county[0]["county"]} County Cases`);
-
         }
 
         //primary covid map canvas
