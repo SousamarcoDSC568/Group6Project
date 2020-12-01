@@ -81,7 +81,7 @@
     // load the data sources:
     // Source 1: NY times COVID-19 Data (live) then COVID-19 full
     let covid19="https://raw.githubusercontent.com/nytimes/covid-19-data/master/live/us-counties.csv";
-    //let covid192 = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv"
+//    let covid192 = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv"
     //I have data that has added fields changeInCases and changeInDeaths (NYTimes data is cumulative). Same as 192 but with 2 added cols.
     //You could also promise it from the /data/ folder if you wish.
     let covid193 = "https://raw.githubusercontent.com/SousamarcoDSC568/Group6Project/main/D3CovidMapByCounty/data/covid19Backend.csv"
@@ -105,6 +105,8 @@
         let geoJson = topojson.feature(data[0],data[0].objects.cb_2018_us_county_20m).features;
         let geo_generator = d3.geoPath().projection(projection);
         let covid_data = d3.group(data[1],function(d){return d.fips;}); // groups of fips
+//        console.log(data[0],data[1], geoJson)
+        let geoJson_data = d3.group(geoJson,function(d){return d.properties.GEOID;}); // groups of fips
         let cases_extent = d3.extent(data[1],function (d){
             return +d.cases
         })
@@ -121,7 +123,15 @@
         {
             //getting the data within the function; to be used on mousehover
             let data_for_the_hovored_county = covid_data_full.get(line_data);
+            console.log(covid_data_full, line_data, data_for_the_hovored_county)
 
+            //Generates changeInCases for each hovered county on demand and sets negative changes to zero.
+            for(i = data_for_the_hovored_county.length-1; i>0; i--){
+                data_for_the_hovored_county[i].changeInCases = data_for_the_hovored_county[i].cases - data_for_the_hovored_county[(i-1)].cases;
+                if(data_for_the_hovored_county[i].changeInCases < 0) {
+                    data_for_the_hovored_county[i].changeInCases = 0;
+                }
+            }
             // x and y for the line chart for number of the cases (cumulative)
             //maps time and cases are both extracted,(date is parsed)
             let x_y  = d3.map(data_for_the_hovored_county,function (d) {
@@ -238,9 +248,49 @@
                 Make_line_chart(d.properties.GEOID)
 
             })
+
+/*  Uncomment this section to open Google Earth instead of Google Sky (you have to comment out the Google Sky section too)
+            //This is the section that opens a new tab and uses the county latitude & longitude to zoom in on Google Earth to that county
+            .on("click", function(mouseData,d) {
+                //The conditional is because some counties have an array of coordinates and others have just a pair -- different levels of nested values
+                if (isNaN(geoJson_data.get(d.properties.GEOID)[0].geometry.coordinates[0][0][0][1])) {
+                    //Calls up the website with the county latitude & longitude
+                    window.open(
+                        "https://earth.google.com/web/@" + geoJson_data.get(d.properties.GEOID)[0].geometry.coordinates[0][0][1].toString() + "," + geoJson_data.get(d.properties.GEOID)[0].geometry.coordinates[0][0][0].toString() + ",286.54020824a,550579.50131066d,35y,-0h,0t,0r",
+                    )
+                } else {
+                    //Calls up the website with the county latitude & longitude
+                    window.open(
+                        "https://earth.google.com/web/@" + geoJson_data.get(d.properties.GEOID)[0].geometry.coordinates[0][0][0][1].toString() + "," + geoJson_data.get(d.properties.GEOID)[0].geometry.coordinates[0][0][0][0].toString() + ",286.54020824a,550579.50131066d,35y,-0h,0t,0r",
+                    )
+                }
+            })
+*/
+
+/*  Uncomment this section to open Google Sky instead of Google Earth */
+            //This is the section that opens a new tab and uses the county latitude & longitude to open Google Sky to the night sky for that county relative to the other counties
+            .on("click", function(mouseData,d) {
+                console.log("open tab")
+                //The conditional is because some counties have an array of coordinates and others have just a pair -- different levels of nested values
+                if (isNaN(geoJson_data.get(d.properties.GEOID)[0].geometry.coordinates[0][0][0][1])) {
+                    window.open(
+                        //Calls up the website with the county latitude & longitude
+                        "https://www.google.com/sky/#latitude=" + geoJson_data.get(d.properties.GEOID)[0].geometry.coordinates[0][0][1].toString() + "&longitude=" + geoJson_data.get(d.properties.GEOID)[0].geometry.coordinates[0][0][0].toString() + "&zoom=7&Spitzer=0.00&ChandraXO=0.00&Galex=0.00&IRAS=0.00&WMAP=0.00&Cassini=0.00&slide=1&mI=-1&oI=-1",
+                        "_blank"
+                    )
+                } else {
+                    window.open(
+                        //Calls up the website with the county latitude & longitude
+                        "https://www.google.com/sky/#latitude=" + geoJson_data.get(d.properties.GEOID)[0].geometry.coordinates[0][0][0][0].toString() + "&longitude=" + geoJson_data.get(d.properties.GEOID)[0].geometry.coordinates[0][0][0][1].toString() + "&zoom=7&Spitzer=0.00&ChandraXO=0.00&Galex=0.00&IRAS=0.00&WMAP=0.00&Cassini=0.00&slide=1&mI=-1&oI=-1",
+                        "_blank"
+                    )
+                }
+            })
+
+
             .transition()
-            .delay(function (d,i){return i*2})
-            .duration(800)
+//            .delay(function (d,i){return i*2})
+//            .duration(800)
             .style("fill",function (d){
                 try{
                     return colorScale(parseInt(covid_data.get(d.properties.GEOID)[0].cases));
