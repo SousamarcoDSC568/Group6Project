@@ -217,6 +217,112 @@
                 .text(`${data_for_the_hovored_county[0]["county"]} County Cases`);
         }
 
+        //The following function was assisted by Prof. Amir. Generates line chart with mouseover.
+        //function input is a specific GEOID, the genral data d from mouseover, and svg id (defaulted)
+        function Make_moon_line_chart(line_data,svg_element_name="bottomRight")
+        {
+            //getting the data within the function; to be used on mousehover
+            let data_for_the_hovored_county = covid_data_full.get(line_data);
+            //console.log(covid_data_full, line_data, data_for_the_hovored_county)
+
+            //Generates changeInCases for each hovered county on demand and sets negative changes to zero.
+            for(i = data_for_the_hovored_county.length-1; i>0; i--){
+                data_for_the_hovored_county[i].changeInCases = data_for_the_hovored_county[i].cases - data_for_the_hovored_county[(i-1)].cases;
+                if(data_for_the_hovored_county[i].changeInCases < 0) {
+                    data_for_the_hovored_county[i].changeInCases = 0;
+                }
+            }
+            // x and y for the line chart for number of the cases (cumulative)
+            //maps time and cases are both extracted,(date is parsed)
+            let x_y  = d3.map(data_for_the_hovored_county,function (d) {
+                return {"x" : d3.timeParse("%Y-%m-%d")(d.date), // cast to date format
+                    "y": + d.changeInCases // cast to numeric
+                }
+            });
+            //console.log(x_y[0].x >= fullMoonDates[0] && x_y[0].x <= fullMoonDates[fullMoonDates.length-1]);
+
+            let moon_x_y = d3.filter(x_y, (d) => { 
+                return d.x >= fullMoonDates[0] && d.x <= fullMoonDates[fullMoonDates.length-1];
+            })
+            // console.log(moon_x_y);
+
+            //scales apply with a function returning "x" and "y" from data d
+            // xscale and yscale
+            let xscale = d3.scaleTime().domain(d3.extent(x_y,function (d) {
+                return d.x
+            }))
+                .range([0, 900])
+            let yscale = d3.scaleLinear().domain(d3.extent(x_y,function (d) {
+                return d.y
+            }))
+                .range([700,0])
+
+            // line generator
+            let line_generator = d3.line()
+                .x(function (d) {
+                    return xscale(d.x)})
+                .y(function (d) { return yscale(d.y)})
+
+            //NOTE: If you wish to use this in the future, simply replace the filteredData with the full data!
+            //Acquires the first date associated with a county
+            let firstDate = d3.map(x_y, function(d){return d.x})[2]
+
+            //removing red line svg elements
+            svg2.selectAll(".rects").remove()
+
+            //adding red line svg elements; filters out dates past firstDate, described above
+            svg2.append('g')
+                .attr("transform","translate(75,0)")
+                .attr("class",'rects')
+                .selectAll('.rects')
+                .data(fullMoonDates)
+                .enter()
+                .append('rect')
+                .filter(function(d){ return (d > firstDate)})
+                .attr("fill",function(d){ return "red"})
+                .attr('x',function(d){return xscale(d)})
+                .attr('y',0).attr('height',750).attr('width',2)
+
+            //Linefigure
+            d3.select('.Linefigure').remove();
+            let lineChart_svg = d3.select(`#${svg_element_name}`)
+                .append("g")
+                .attr("class","Linefigure")
+                .attr("transform","translate(75, 50)")
+
+            //[x_y], being the dates and cases are data, and appending the line generator
+            lineChart_svg.selectAll('g')
+                .data([x_y])
+                .enter()
+                .append("path")
+                .attr("d",line_generator)
+                .attr("stroke","black")
+                .attr("stroke-width","2.5px")
+                .attr("fill","none")
+
+            //adding axis to the figure
+            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(0,0)")
+                .call(d3.axisLeft(yscale));
+            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(0,700)")
+                .call(d3.axisBottom(xscale));
+
+            //Adding a svg behind title so that the red lines do not cross the title
+            let titleRectangle = lineChart_svg.append("rect")
+                .attr("x",300)
+                .attr("y",0)
+                .attr("width", 460)
+                .attr("height", 65)
+                .attr("fill","white")
+                .attr("transform","translate(-50,-50)")
+
+            //Adding a title
+            lineChart_svg.append("text")
+                .attr("x", 450)
+                .attr("text-anchor", "middle")
+                .style("font-size", "35px")
+                .text(`${data_for_the_hovored_county[0]["county"]} County Cases`);
+        }
+
         //primary covid map canvas
         cases_extent[0]=1
         let colorScale = d3.scaleLog()
