@@ -76,7 +76,9 @@
     // selecting appropriate canvas or chart svg
     let svg = d3.select('#canvas');
     let svg2 = d3.select('#bottomRight');
+    let svg3 = d3.select('#topRight');
     svg2.append();
+    svg3.append();
 
     // load the data sources:
     // Source 1: NY times COVID-19 Data (live) then COVID-19 full
@@ -219,7 +221,7 @@
 
         //The following function was assisted by Prof. Amir. Generates line chart with mouseover.
         //function input is a specific GEOID, the genral data d from mouseover, and svg id (defaulted)
-        function Make_moon_line_chart(line_data,svg_element_name="bottomRight")
+        function Make_moon_bar_plot(line_data,svg_element_name="topRight")
         {
             //getting the data within the function; to be used on mousehover
             let data_for_the_hovored_county = covid_data_full.get(line_data);
@@ -244,7 +246,7 @@
             let moon_x_y = d3.filter(x_y, (d) => { 
                 return d.x >= fullMoonDates[0] && d.x <= fullMoonDates[fullMoonDates.length-1];
             })
-            // console.log(moon_x_y);
+            console.log(moon_x_y);
 
             //scales apply with a function returning "x" and "y" from data d
             // xscale and yscale
@@ -265,13 +267,13 @@
 
             //NOTE: If you wish to use this in the future, simply replace the filteredData with the full data!
             //Acquires the first date associated with a county
-            let firstDate = d3.map(x_y, function(d){return d.x})[2]
+            let firstDate = d3.map(moon_x_y, function(d){return d.x})[2]
 
             //removing red line svg elements
-            svg2.selectAll(".rects").remove()
+            svg3.selectAll(".rects").remove()
 
             //adding red line svg elements; filters out dates past firstDate, described above
-            svg2.append('g')
+            svg3.append('g')
                 .attr("transform","translate(75,0)")
                 .attr("class",'rects')
                 .selectAll('.rects')
@@ -284,14 +286,14 @@
                 .attr('y',0).attr('height',750).attr('width',2)
 
             //Linefigure
-            d3.select('.Linefigure').remove();
-            let lineChart_svg = d3.select(`#${svg_element_name}`)
+            d3.select('.Linefiguretm').remove();
+            let moonLineChart_svg = d3.select(`#${svg_element_name}`)
                 .append("g")
-                .attr("class","Linefigure")
+                .attr("class","Linefiguretm")
                 .attr("transform","translate(75, 50)")
 
             //[x_y], being the dates and cases are data, and appending the line generator
-            lineChart_svg.selectAll('g')
+            moonLineChart_svg.selectAll('g')
                 .data([x_y])
                 .enter()
                 .append("path")
@@ -301,13 +303,13 @@
                 .attr("fill","none")
 
             //adding axis to the figure
-            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(0,0)")
+            moonLineChart_svg.append("g").attr("class","axis").attr("transform","translate(0,0)")
                 .call(d3.axisLeft(yscale));
-            lineChart_svg.append("g").attr("class","axis").attr("transform","translate(0,700)")
+            moonLineChart_svg.append("g").attr("class","axis").attr("transform","translate(0,700)")
                 .call(d3.axisBottom(xscale));
 
             //Adding a svg behind title so that the red lines do not cross the title
-            let titleRectangle = lineChart_svg.append("rect")
+            let titleRectangle = moonLineChart_svg.append("rect")
                 .attr("x",300)
                 .attr("y",0)
                 .attr("width", 460)
@@ -316,7 +318,7 @@
                 .attr("transform","translate(-50,-50)")
 
             //Adding a title
-            lineChart_svg.append("text")
+            moonLineChart_svg.append("text")
                 .attr("x", 450)
                 .attr("text-anchor", "middle")
                 .style("font-size", "35px")
@@ -352,6 +354,7 @@
 
                 //inputting the GEOID data into the linechart function
                 Make_line_chart(d.properties.GEOID)
+                Make_moon_bar_plot(d.properties.GEOID)
 
             })
 
