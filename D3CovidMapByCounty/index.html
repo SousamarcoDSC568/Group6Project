@@ -54,6 +54,9 @@
         .barDeaths {
             fill: red;
         }
+        .axis {
+            font-size: 16px;
+        }
     </style>
 </head>
 
@@ -252,10 +255,10 @@
             FullMoonBefore.setDate(fullMoonDates[fullMoonDates.length-1].getDate()-14);
 
             let FullMoonAfter = new Date(fullMoonDates[fullMoonDates.length-1]);
-            FullMoonAfter.setDate(fullMoonDates[fullMoonDates.length-1].getDate()+14);
+            FullMoonAfter.setDate(fullMoonDates[fullMoonDates.length-1].getDate()+28);
 
             let moon_x_y = d3.filter(x_y, (d) => { 
-                return d.x >= FullMoonBefore && d.x <= FullMoonAfter;
+                return d.x >= fullMoonDates[fullMoonDates.length-1] && d.x <= FullMoonAfter;
             })
 
             //scales apply with a function returning "x" and "y" from data d
