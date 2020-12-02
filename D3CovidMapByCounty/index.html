@@ -327,7 +327,7 @@
                 .attr("width", 10)
                 .attr("height", function(d) { return 700 - yscale(d.y); });
 
-                moonLineChart_svg.selectAll(".barDeaths")
+            moonLineChart_svg.selectAll(".barDeaths")
                 .data(moon_x_y)
                 .enter().append("rect")
                 .attr("class", "barDeaths")
@@ -356,7 +356,7 @@
                 .attr("x", 450)
                 .attr("text-anchor", "middle")
                 .style("font-size", "35px")
-                .text(`${data_for_the_hovored_county[0]["county"]} County Cases`);
+                .text(`${data_for_the_hovored_county[0]["county"]} County Cases \ Deaths`);
         }
 
         //primary covid map canvas
