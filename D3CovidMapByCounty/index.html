@@ -248,11 +248,14 @@
                 }
             });
 
-            let lastFullMoonDateOffset = new Date(fullMoonDates[fullMoonDates.length-1]);
-            lastFullMoonDateOffset.setDate(fullMoonDates[fullMoonDates.length-1].getDate()-28);
+            let FullMoonBefore = new Date(fullMoonDates[fullMoonDates.length-1]);
+            FullMoonBefore.setDate(fullMoonDates[fullMoonDates.length-1].getDate()-14);
+
+            let FullMoonAfter = new Date(fullMoonDates[fullMoonDates.length-1]);
+            FullMoonAfter.setDate(fullMoonDates[fullMoonDates.length-1].getDate()+14);
 
             let moon_x_y = d3.filter(x_y, (d) => { 
-                return d.x >= lastFullMoonDateOffset && d.x <= fullMoonDates[fullMoonDates.length-1];
+                return d.x >= FullMoonBefore && d.x <= FullMoonAfter;
             })
 
             //scales apply with a function returning "x" and "y" from data d
@@ -293,7 +296,7 @@
                 .enter()
                 .append('rect')
                 .filter(function(d){ return (d > firstDate)})
-                .attr("fill",function(d){ return "red"})
+                .attr("fill",function(d){ return "green"})
                 .attr('x',function(d){return xscale(d)})
                 .attr('y',0).attr('height',750).attr('width',2)
 
@@ -342,8 +345,23 @@
             moonBarPlot_svg.append("text")
                 .attr("x", 450)
                 .attr("text-anchor", "middle")
-                .style("font-size", "35px")
-                .text(`${data_for_the_hovored_county[0]["county"]} County Cases \ Deaths`);
+                .style("font-size", "25px")
+                .text(`${data_for_the_hovored_county[0]["county"]} County: `)
+                .append("tspan")
+                .style("fill", "blue")
+                .text('Cases')
+                .append("tspan")
+                .style("fill", "black")
+                .text(' and ')
+                .append("tspan")
+                .style("fill", "red")
+                .text('Deaths')
+                .append("tspan")
+                .style("fill", "black")
+                .text(' 14 Days Before\\After Most Recent ')
+                .append("tspan")
+                .style("fill", "green")
+                .text('Eclipse')
         }
 
         //primary covid map canvas
