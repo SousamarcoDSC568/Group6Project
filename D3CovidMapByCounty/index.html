@@ -286,22 +286,21 @@
             //NOTE: If you wish to use this in the future, simply replace the filteredData with the full data!
             //Acquires the first date associated with a county
             let firstDate = d3.map(moon_x_y, function(d){return d.x})[2]
-
             //removing red line svg elements
             svg3.selectAll(".rects").remove()
 
             //adding red line svg elements; filters out dates past firstDate, described above
-            svg3.append('g')
-                .attr("transform","translate(75,0)")
-                .attr("class",'rects')
-                .selectAll('.rects')
-                .data(fullMoonDates)
-                .enter()
-                .append('rect')
-                .filter(function(d){ return (d > firstDate)})
-                .attr("fill",function(d){ return "green"})
-                .attr('x',function(d){return xscale(d)})
-                .attr('y',0).attr('height',750).attr('width',2)
+            // svg3.append('g')
+            //     .attr("transform","translate(75,0)")
+            //     .attr("class",'rects')
+            //     .selectAll('.rects')
+            //     .data(fullMoonDates)
+            //     .enter()
+            //     .append('rect')
+            //     .filter(function(d){ return (d > firstDate)})
+            //     .attr("fill",function(d){ return "green"})
+            //     .attr('x',function(d){return xscale(d)+20})
+            //     .attr('y',0).attr('height',750).attr('width',2)
 
             //Linefigure
             d3.select('.bar').remove();
