@@ -26,7 +26,7 @@
             margin: auto;
             padding-top: 1%;
             padding-bottom: 1%;
-            padding-left: 4%;
+            padding-left: 25%;
             font-family: serif;
             font-size: 20pt;
         }
@@ -39,11 +39,12 @@
         {
             width: 1000px;
             height: 800px;
-            background-color: azure;
+            background-color: white;
         }
         path.path_geo{
             stroke-width: .5px;
             stroke: black;
+            background-color: white;
         }
         .axis{
             font-size: 20px;
@@ -56,20 +57,26 @@
         }
         .axis {
             font-size: 16px;
-        }
+        }.table, th{
+            border:3px solid black
+                 }
+         .table, td {
+             border:2px solid black
+         }
+
     </style>
 </head>
 
 <body>
 
 <div id="caption">
-    US COVID-19 Cases by County.
+    US COVID-19 Cases by County and Moon Relationship
 </div>
 <div id="tooltip"></div>
 
 
 <!--Table encoding where/how our svg elements are stored in a multiview -->
-<table width="60vw" border=".01px" >
+<table width="60vw">
 
     <tr>
         <th rowspan="2"><svg id="canvas" viewBox="0 0 1000 800"></svg></th>
@@ -228,8 +235,8 @@
                 .text(`${data_for_the_hovored_county[0]["county"]} County Cases`);
         }
 
-        //The following function was assisted by Prof. Amir. Generates line chart with mouseover.
-        //function input is a specific GEOID, the genral data d from mouseover, and svg id (defaulted)
+
+        //function input is a specific GEOID and svg id (defaulted)
         function Make_moon_bar_plot(line_data,svg_element_name="topRight")
         {
             //getting the data within the function; to be used on mousehover
@@ -289,19 +296,6 @@
             //removing red line svg elements
             svg3.selectAll(".rects").remove()
 
-            //adding red line svg elements; filters out dates past firstDate, described above
-            // svg3.append('g')
-            //     .attr("transform","translate(75,0)")
-            //     .attr("class",'rects')
-            //     .selectAll('.rects')
-            //     .data(fullMoonDates)
-            //     .enter()
-            //     .append('rect')
-            //     .filter(function(d){ return (d > firstDate)})
-            //     .attr("fill",function(d){ return "green"})
-            //     .attr('x',function(d){return xscale(d)+20})
-            //     .attr('y',0).attr('height',750).attr('width',2)
-
             //Linefigure
             d3.select('.bar').remove();
             let moonBarPlot_svg = d3.select(`#${svg_element_name}`)
@@ -331,8 +325,11 @@
             //adding axis to the figure
             moonBarPlot_svg.append("g").attr("class","axis").attr("transform","translate(0,0)")
                 .call(d3.axisLeft(yscale));
-            moonBarPlot_svg.append("g").attr("class","axis").attr("transform","translate(0,700)")
-                .call(d3.axisBottom(xscale).tickFormat(d3.timeFormat("%b-%d")));
+            moonBarPlot_svg.append("g")
+                .attr("class","axis")
+                .attr("transform","translate(0,700)")
+                .call(d3.axisBottom(xscale)
+                    .tickFormat(d3.timeFormat("%b-%d")));
 
             //Adding a svg behind title so that the red lines do not cross the title
             let titleRectangle = moonBarPlot_svg.append("rect")
@@ -396,7 +393,6 @@
                 //inputting the GEOID data into the linechart function
                 Make_line_chart(d.properties.GEOID)
                 Make_moon_bar_plot(d.properties.GEOID)
-
             })
 
 /*  Uncomment this section to open Google Earth instead of Google Sky (you have to comment out the Google Sky section too)
